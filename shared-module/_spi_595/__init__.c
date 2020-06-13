@@ -34,6 +34,21 @@
 
 #include "shared-bindings/digitalio/DigitalInOut.h"
 
+// Array
+#define ROW_SIZE        8
+#define COL_SIZE        8
+
+// 2-bits per pixel
+#define RED_MASK        0x30
+#define GREEN_MASK      0x0C
+#define BLUE_MASK       0x03
+
+// SPI data packet ordering
+#define RED_OFFSET      0   // Active-low
+#define BLUE_OFFSET     1   // Active-low
+#define GREEN_OFFSET    2   // Active-low
+#define COL_OFFSET      3   // Active-high
+
 void spi_595_tick(void) {
     busio_spi_obj_t *spi;
     digitalio_digitalinout_obj_t *spi_cs;
@@ -42,95 +57,61 @@ void spi_595_tick(void) {
     spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
     if (!spi_595) { return; }
 
-    // Reds
-    spi_packet[0] = 0x00; // R (active low)
-    spi_packet[1] = 0xff; // B (active low)
-    spi_packet[2] = 0xff; // G (active low)
     spi = MP_OBJ_TO_PTR(spi_595->spi);
     spi_cs = MP_OBJ_TO_PTR(spi_595->chip_select);
-    for (uint8_t col = 0 ; col < 8 ; col++) {
-        spi_packet[3] = (1 << col); // COL (active high)
+
+    for (uint8_t col = 0 ; col < COL_SIZE ; col++) {
+        uint8_t red_value   = 0xff;
+        uint8_t green_value = 0xff;
+        uint8_t blue_value  = 0xff;
+        for (uint8_t row = 0 ; row < ROW_SIZE ; row++) {
+            uint8_t color = spi_595->buffer[row * ROW_SIZE + col];
+            if (color & RED_MASK) {
+                red_value &= ~(1 << row);
+            }
+            if (color & GREEN_MASK) {
+                green_value &= ~(1 << row);
+            }
+            if (color & BLUE_MASK) {
+                blue_value &= ~(1 << row);
+            }
+        }
+        spi_packet[COL_OFFSET] = (1 << col);
+
+        // Red
+        spi_packet[RED_OFFSET]   = red_value;
+        spi_packet[GREEN_OFFSET] = 0xff;
+        spi_packet[BLUE_OFFSET]  = 0xff;
+
         common_hal_digitalio_digitalinout_set_value(spi_cs, false);
         common_hal_busio_spi_write(spi, spi_packet, 4);
         common_hal_digitalio_digitalinout_set_value(spi_cs, true);
-    }
 
-    // Greens
-    spi_packet[0] = 0xff; // R (active low)
-    spi_packet[1] = 0xff; // B (active low)
-    spi_packet[2] = 0x00; // G (active low)
-    spi = MP_OBJ_TO_PTR(spi_595->spi);
-    spi_cs = MP_OBJ_TO_PTR(spi_595->chip_select);
-    for (uint8_t col = 0 ; col < 8 ; col++) {
-        spi_packet[3] = (1 << col); // COL (active high)
+        // Green
+        spi_packet[RED_OFFSET]   = 0xff;
+        spi_packet[GREEN_OFFSET] = green_value;
+        spi_packet[BLUE_OFFSET]  = 0xff;
+
         common_hal_digitalio_digitalinout_set_value(spi_cs, false);
         common_hal_busio_spi_write(spi, spi_packet, 4);
         common_hal_digitalio_digitalinout_set_value(spi_cs, true);
-    }
 
-    // Blues
-    spi_packet[0] = 0xff; // R (active low)
-    spi_packet[1] = 0x00; // B (active low)
-    spi_packet[2] = 0xff; // G (active low)
-    spi = MP_OBJ_TO_PTR(spi_595->spi);
-    spi_cs = MP_OBJ_TO_PTR(spi_595->chip_select);
-    for (uint8_t col = 0 ; col < 8 ; col++) {
-        spi_packet[3] = (1 << col); // COL (active high)
+        // Blue
+        spi_packet[RED_OFFSET]   = 0xff;
+        spi_packet[GREEN_OFFSET] = 0xff;
+        spi_packet[BLUE_OFFSET]  = blue_value;
+
         common_hal_digitalio_digitalinout_set_value(spi_cs, false);
         common_hal_busio_spi_write(spi, spi_packet, 4);
         common_hal_digitalio_digitalinout_set_value(spi_cs, true);
     }
 
     // Turn off (otherwise last column will be brighter (for one color)
-    spi_packet[0] = 0xff; // R (active low)
-    spi_packet[1] = 0xff; // B (active low)
-    spi_packet[2] = 0xff; // G (active low)
-    spi_packet[3] = 0x00; // COL (active high)
+    spi_packet[RED_OFFSET]   = 0xff;
+    spi_packet[GREEN_OFFSET] = 0xff;
+    spi_packet[BLUE_OFFSET]  = 0xff;
+    spi_packet[COL_OFFSET]   = 0x00;
     common_hal_digitalio_digitalinout_set_value(spi_cs, false);
     common_hal_busio_spi_write(spi, spi_packet, 4);
     common_hal_digitalio_digitalinout_set_value(spi_cs, true);
-
-#ifdef NEVER_DEF
-    pin = MP_OBJ_TO_PTR(spi_595->cols[col]);
-    ++col;
-    if (col >= spi_595->cols_size) {
-        spi_595->pressed |= last_pressed & pressed;
-        last_pressed = pressed;
-        pressed = 0;
-        col = 0;
-        ++turn;
-        if (turn > 11) {
-            turn = 0;
-        }
-    }
-    if (!common_hal_digitalio_digitalinout_get_value(spi_595->buttons)) {
-        pressed |= 1 << col;
-    }
-    common_hal_digitalio_digitalinout_set_value(pin, true);
-    for (size_t x = 0; x < spi_595->rows_size; ++x) {
-        pin = MP_OBJ_TO_PTR(spi_595->rows[x]);
-        uint8_t color = spi_595->buffer[col * (spi_595->rows_size) + x];
-        bool value = false;
-        switch (color & 0x03) {
-            case 3:
-                value = true;
-                break;
-            case 2:
-                if (turn == 2 || turn == 5 || turn == 8 || turn == 11) {
-                        value = true;
-                }
-                break;
-            case 1:
-                if (turn == 0) {
-                    value = true;
-                }
-                break;
-            case 0:
-                break;
-        }
-        common_hal_digitalio_digitalinout_set_value(pin, value);
-    }
-    pin = MP_OBJ_TO_PTR(spi_595->cols[col]);
-    common_hal_digitalio_digitalinout_set_value(pin, false);
-#endif // NEVER_DEF
 }

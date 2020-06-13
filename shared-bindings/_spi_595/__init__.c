@@ -31,24 +31,11 @@
 #include "SPI_595.h"
 #include "shared-module/_spi_595/SPI_595.h"
 
-STATIC mp_obj_t get_pressed(void) {
-    spi_595_obj_t *spi_595 = MP_STATE_VM(spi_595_singleton);
-    if (!spi_595) {
-        return mp_const_none;
-    }
-    uint8_t pressed = spi_595->pressed;
-    spi_595->pressed = 0;
-    return mp_obj_new_int(pressed);
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_pressed_obj, get_pressed);
-
-
 //| """LED matrix driver"""
 //|
 STATIC const mp_rom_map_elem_t spi_595_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__spi_595) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_SPI_595),  MP_ROM_PTR(&spi_595_type)},
-    { MP_OBJ_NEW_QSTR(MP_QSTR_get_pressed),  MP_ROM_PTR(&get_pressed_obj)},
 };
 STATIC MP_DEFINE_CONST_DICT(spi_595_module_globals,
         spi_595_module_globals_table);

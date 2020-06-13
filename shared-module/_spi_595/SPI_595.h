@@ -30,16 +30,13 @@
 
 #include <stdint.h>
 #include "shared-bindings/digitalio/DigitalInOut.h"
+#include "shared-bindings/busio/SPI.h"
 
 typedef struct {
     mp_obj_base_t base;
     uint8_t* buffer;
-    mp_obj_t* rows;
-    mp_obj_t* cols;
-    digitalio_digitalinout_obj_t *buttons;
-    uint8_t rows_size;
-    uint8_t cols_size;
-    uint8_t pressed;
+    busio_spi_obj_t *spi;
+    digitalio_digitalinout_obj_t *chip_select;
 } spi_595_obj_t;
 
 void spi_595_init(void);

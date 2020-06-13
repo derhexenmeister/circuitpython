@@ -58,20 +58,21 @@ void spi_595_interrupt_handler(uint8_t index) {
 }
 
 void spi_595_init() {
-    spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
+    //spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
 
-    common_hal_digitalio_digitalinout_switch_to_input(spi_595->buttons, PULL_UP);
+    // TODO - can't this be done in the python part?
+    //common_hal_digitalio_digitalinout_switch_to_input(spi_595->buttons, PULL_UP);
 
-    for (size_t i = 0; i < spi_595->rows_size; ++i) {
-        digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->rows[i]);
-        common_hal_digitalio_digitalinout_switch_to_output(pin, false,
-            DRIVE_MODE_PUSH_PULL);
-    }
-    for (size_t i = 0; i < spi_595->cols_size; ++i) {
-        digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->cols[i]);
-        common_hal_digitalio_digitalinout_switch_to_output(pin, true,
-            DRIVE_MODE_PUSH_PULL); // DRIVE_MODE_OPEN_DRAIN
-    }
+    //for (size_t i = 0; i < spi_595->rows_size; ++i) {
+    //    digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->rows[i]);
+    //    common_hal_digitalio_digitalinout_switch_to_output(pin, false,
+    //        DRIVE_MODE_PUSH_PULL);
+    //}
+    //for (size_t i = 0; i < spi_595->cols_size; ++i) {
+    //    digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->cols[i]);
+    //    common_hal_digitalio_digitalinout_switch_to_output(pin, true,
+    //        DRIVE_MODE_PUSH_PULL); // DRIVE_MODE_OPEN_DRAIN
+    //}
     if (spi_595_tc_index == 0xff) {
         // Find a spare timer.
         uint8_t index = find_free_timer();

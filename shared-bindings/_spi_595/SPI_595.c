@@ -61,61 +61,42 @@
 //|
 STATIC mp_obj_t spi_595_make_new(const mp_obj_type_t *type, size_t n_args,
         const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    mp_arg_check_num(n_args, kw_args, 4, 4, true);
-    enum { ARG_buffer, ARG_rows, ARG_cols, ARG_buttons };
+    mp_arg_check_num(n_args, kw_args, 3, 3, true);
+    enum { ARG_spi, ARG_chip_select, ARG_buffer };
     static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_spi, MP_ARG_OBJ | MP_ARG_REQUIRED },
+        { MP_QSTR_chip_select, MP_ARG_OBJ | MP_ARG_REQUIRED },
         { MP_QSTR_buffer, MP_ARG_OBJ | MP_ARG_REQUIRED },
-        { MP_QSTR_rows, MP_ARG_OBJ | MP_ARG_REQUIRED },
-        { MP_QSTR_cols, MP_ARG_OBJ | MP_ARG_REQUIRED },
-        { MP_QSTR_buttons, MP_ARG_OBJ | MP_ARG_REQUIRED },
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args),
                      allowed_args, args);
 
+    if (!MP_OBJ_IS_TYPE(args[ARG_spi].u_obj,
+                        &busio_spi_type)) {
+        mp_raise_TypeError(translate("spi must be busio.SPI"));
+    }
+    busio_spi_obj_t *spi = MP_OBJ_TO_PTR(
+            args[ARG_spi].u_obj);
+    if (common_hal_busio_spi_deinited(spi)) {
+        raise_deinited_error();
+    }
+
+    if (!MP_OBJ_IS_TYPE(args[ARG_chip_select].u_obj,
+                        &digitalio_digitalinout_type)) {
+        mp_raise_TypeError(translate("chip_Select must be digitalio.DigitalInOut"));
+    }
+    digitalio_digitalinout_obj_t *chip_select = MP_OBJ_TO_PTR(
+            args[ARG_chip_select].u_obj);
+    if (common_hal_digitalio_digitalinout_deinited(chip_select)) {
+        raise_deinited_error();
+    }
+
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(args[ARG_buffer].u_obj, &bufinfo, MP_BUFFER_READ);
 
-    size_t rows_size = 0;
-    mp_obj_t *rows;
-    mp_obj_get_array(args[ARG_rows].u_obj, &rows_size, &rows);
-
-    size_t cols_size = 0;
-    mp_obj_t *cols;
-    mp_obj_get_array(args[ARG_cols].u_obj, &cols_size, &cols);
-
-    if (bufinfo.len != rows_size * cols_size) {
+    if (bufinfo.len != 64) {
         mp_raise_ValueError(translate("Incorrect buffer size"));
-    }
-
-    for (size_t i = 0; i < rows_size; ++i) {
-        if (!MP_OBJ_IS_TYPE(rows[i], &digitalio_digitalinout_type)) {
-            mp_raise_TypeError(translate("Row entry must be digitalio.DigitalInOut"));
-        }
-        digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(rows[i]);
-        if (common_hal_digitalio_digitalinout_deinited(pin)) {
-            raise_deinited_error();
-        }
-    }
-
-    for (size_t i = 0; i < cols_size; ++i) {
-        if (!MP_OBJ_IS_TYPE(cols[i], &digitalio_digitalinout_type)) {
-            mp_raise_TypeError(translate("Column entry must be digitalio.DigitalInOut"));
-        }
-        digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(cols[i]);
-        if (common_hal_digitalio_digitalinout_deinited(pin)) {
-            raise_deinited_error();
-        }
-    }
-
-    if (!MP_OBJ_IS_TYPE(args[ARG_buttons].u_obj,
-                        &digitalio_digitalinout_type)) {
-        mp_raise_TypeError(translate("buttons must be digitalio.DigitalInOut"));
-    }
-    digitalio_digitalinout_obj_t *buttons = MP_OBJ_TO_PTR(
-            args[ARG_buttons].u_obj);
-    if (common_hal_digitalio_digitalinout_deinited(buttons)) {
-        raise_deinited_error();
     }
 
     spi_595_obj_t *spi_595 = MP_STATE_VM(spi_595_singleton);
@@ -126,13 +107,9 @@ STATIC mp_obj_t spi_595_make_new(const mp_obj_type_t *type, size_t n_args,
         MP_STATE_VM(spi_595_singleton) = spi_595;
     }
 
+    spi_595->spi = spi;
+    spi_595->chip_select = chip_select;
     spi_595->buffer = bufinfo.buf;
-    spi_595->rows = rows;
-    spi_595->rows_size = rows_size;
-    spi_595->cols = cols;
-    spi_595->cols_size = cols_size;
-    spi_595->buttons = buttons;
-    spi_595->pressed = 0;
     spi_595_init();
 
     return MP_OBJ_FROM_PTR(spi_595);

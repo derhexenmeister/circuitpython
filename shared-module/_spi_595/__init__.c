@@ -44,9 +44,9 @@ void spi_595_tick(void) {
     spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
     if (!spi_595) { return; }
 
-    // KME hack - just toggle cols[0] every interrupt
+    // KME hack - just toggle chip_select every interrupt
     ++col;
-    pin = MP_OBJ_TO_PTR(spi_595->cols[0]);
+    pin = MP_OBJ_TO_PTR(spi_595->chip_select);
     common_hal_digitalio_digitalinout_set_value(pin, (col & 0x1) ? true: false);
 
 #ifdef NEVER_DEF

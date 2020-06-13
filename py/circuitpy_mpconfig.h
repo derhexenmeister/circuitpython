@@ -454,6 +454,13 @@ extern const struct _mp_obj_module_t pew_module;
 #define PEW_MODULE
 #endif
 
+#if CIRCUITPY_SPI_595
+extern const struct _mp_obj_module_t spi_595_module;
+#define SPI_595_MODULE          { MP_OBJ_NEW_QSTR(MP_QSTR__spi_595),(mp_obj_t)&spi_595_module },
+#else
+#define SPI_595_MODULE
+#endif
+
 #if CIRCUITPY_PIXELBUF
 extern const struct _mp_obj_module_t pixelbuf_module;
 #define PIXELBUF_MODULE        { MP_OBJ_NEW_QSTR(MP_QSTR__pixelbuf),(mp_obj_t)&pixelbuf_module },
@@ -665,6 +672,7 @@ extern const struct _mp_obj_module_t ustack_module;
     ROTARYIO_MODULE \
     RTC_MODULE \
     SAMD_MODULE \
+    SPI_595_MODULE \
     STAGE_MODULE \
     STORAGE_MODULE \
     STRUCT_MODULE \
@@ -701,6 +709,7 @@ extern const struct _mp_obj_module_t ustack_module;
     mp_obj_t rtc_time_source; \
     GAMEPAD_ROOT_POINTERS \
     mp_obj_t pew_singleton; \
+    mp_obj_t spi_595_singleton; \
     mp_obj_t terminal_tilegrid_tiles; \
     BOARD_UART_ROOT_POINTER \
     FLASH_ROOT_POINTERS \

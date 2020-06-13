@@ -3,7 +3,9 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Scott Shawcroft for Adafruit Industries
+ * Copyright (c) 2020 Keith Evans
+ * Based on PewPew
+ * Copyright (c) 2019 Radomir Dopieralski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +25,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MICROPY_INCLUDED_ATMEL_SAMD_TIMER_HANDLER_H
-#define MICROPY_INCLUDED_ATMEL_SAMD_TIMER_HANDLER_H
+#include "py/obj.h"
+#include "py/runtime.h"
+#include "py/mphal.h"
+#include "SPI_595.h"
+#include "shared-module/_spi_595/SPI_595.h"
 
-#define TC_HANDLER_NO_INTERRUPT 0x0
-#define TC_HANDLER_PULSEOUT 0x1
-#define TC_HANDLER_PEW 0x2
-#define TC_HANDLER_FREQUENCYIN 0x3
-#define TC_HANDLER_RGBMATRIX 0x4
-#define TC_HANDLER_SPI_595 0x5
+STATIC mp_obj_t get_pressed(void) {
+    spi_595_obj_t *spi_595 = MP_STATE_VM(spi_595_singleton);
+    if (!spi_595) {
+        return mp_const_none;
+    }
+    uint8_t pressed = spi_595->pressed;
+    spi_595->pressed = 0;
+    return mp_obj_new_int(pressed);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(get_pressed_obj, get_pressed);
 
-void set_timer_handler(bool is_tc, uint8_t index, uint8_t timer_handler);
-void shared_timer_handler(bool is_tc, uint8_t index);
 
-// implementation of these functions is in PWMOut.c
-void timer_never_reset(int index, bool is_tc);
-void timer_reset_ok(int index, bool is_tc);
+//| """LED matrix driver"""
+//|
+STATIC const mp_rom_map_elem_t spi_595_module_globals_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__spi_595) },
+    { MP_OBJ_NEW_QSTR(MP_QSTR_SPI_595),  MP_ROM_PTR(&spi_595_type)},
+    { MP_OBJ_NEW_QSTR(MP_QSTR_get_pressed),  MP_ROM_PTR(&get_pressed_obj)},
+};
+STATIC MP_DEFINE_CONST_DICT(spi_595_module_globals,
+        spi_595_module_globals_table);
 
-#endif  // MICROPY_INCLUDED_ATMEL_SAMD_TIMER_HANDLER_H
+const mp_obj_module_t spi_595_module = {
+    .base = { &mp_type_module },
+    .globals = (mp_obj_dict_t*)&spi_595_module_globals,
+};

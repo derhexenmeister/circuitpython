@@ -43,16 +43,41 @@
 #define GREEN_MASK      0x0C
 #define BLUE_MASK       0x03
 
+#define RED_SHIFT       4
+#define GREEN_SHIFT     2
+#define BLUE_SHIFT      0
+
 // SPI data packet ordering
 #define RED_OFFSET      0   // Active-low
 #define BLUE_OFFSET     1   // Active-low
 #define GREEN_OFFSET    2   // Active-low
 #define COL_OFFSET      3   // Active-high
 
+// We'll handle brightness based on the output of cie1931.py
+// (see https://jared.geek.nz/2013/feb/linear-led-pwm)
+// with INPUT_SIZE = 3 and OUTPUT_SIZE = 16.
+//
+// Level 3 : 16 frames on,  0 frames off
+// Level 2 :  6 frames on, 10 frames off
+// Level 1 :  1 frames on, 15 frames off
+// Level 0 :  0 frames on, 16 frames off
+// 
+// Note that this is somewhat complicated by the fact that we
+// don't want to completely consume the processor. So we'll have
+// some idle time where the LEDs will be off. We can adjust this
+// based on the needs of the user code and background processing.
+// Also will colors with multiple components active appear brighter?
+// Need to revisit this.
+//
+#define FRAME_MASK      0xf
+#define COLOR_MASK      0x3
+
 void spi_595_tick(void) {
     busio_spi_obj_t *spi;
     digitalio_digitalinout_obj_t *spi_cs;
     uint8_t spi_packet[4];
+    static uint8_t frame_level[] = {1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    static uint8_t frame_cnt = 0;
 
     spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
     if (!spi_595) { return; }
@@ -66,14 +91,16 @@ void spi_595_tick(void) {
         uint8_t blue_value  = 0xff;
         for (uint8_t row = 0 ; row < ROW_SIZE ; row++) {
             uint8_t color = spi_595->buffer[row * ROW_SIZE + col];
-            if (color & RED_MASK) {
-                red_value &= ~(1 << row);
+            if (((color >> RED_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                // We're using upper left-hand corner as the origin, change to
+                // (1 << row) for lower-left origin
+                red_value &= ~(0x80 >> row);
             }
-            if (color & GREEN_MASK) {
-                green_value &= ~(1 << row);
+            if (((color >> GREEN_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                green_value &= ~(0x80 >> row);
             }
-            if (color & BLUE_MASK) {
-                blue_value &= ~(1 << row);
+            if (((color >> BLUE_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                blue_value &= ~(0x80 >> row);
             }
         }
         spi_packet[COL_OFFSET] = (1 << col);
@@ -114,4 +141,6 @@ void spi_595_tick(void) {
     common_hal_digitalio_digitalinout_set_value(spi_cs, false);
     common_hal_busio_spi_write(spi, spi_packet, 4);
     common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+
+    frame_cnt = (frame_cnt + 1) & FRAME_MASK;
 }

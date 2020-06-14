@@ -3,6 +3,8 @@
  *
  * The MIT License (MIT)
  *
+ * Copyright (c) 2020 Keith Evans
+ * Based on PewPew
  * Copyright (c) 2019 Radomir Dopieralski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -58,21 +60,6 @@ void spi_595_interrupt_handler(uint8_t index) {
 }
 
 void spi_595_init() {
-    //spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
-
-    // TODO - can't this be done in the python part?
-    //common_hal_digitalio_digitalinout_switch_to_input(spi_595->buttons, PULL_UP);
-
-    //for (size_t i = 0; i < spi_595->rows_size; ++i) {
-    //    digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->rows[i]);
-    //    common_hal_digitalio_digitalinout_switch_to_output(pin, false,
-    //        DRIVE_MODE_PUSH_PULL);
-    //}
-    //for (size_t i = 0; i < spi_595->cols_size; ++i) {
-    //    digitalio_digitalinout_obj_t *pin = MP_OBJ_TO_PTR(spi_595->cols[i]);
-    //    common_hal_digitalio_digitalinout_switch_to_output(pin, true,
-    //        DRIVE_MODE_PUSH_PULL); // DRIVE_MODE_OPEN_DRAIN
-    //}
     if (spi_595_tc_index == 0xff) {
         // Find a spare timer.
         uint8_t index = find_free_timer();
@@ -86,6 +73,10 @@ void spi_595_init() {
 
         // We use GCLK0 for SAMD21 and GCLK1 for SAMD51 because they both run
         // at 48mhz making our math the same across the boards.
+        //
+        // We'll divide this by (256*188) to get 1 kHz
+        // The time spent drawing the screen can be adjusted via the SPI clock.
+        //
         #ifdef SAMD21
         turn_on_clocks(true, index, 0);
         #endif
@@ -104,12 +95,10 @@ void spi_595_init() {
         tc_set_enable(tc, false);
         tc->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16
             | TC_CTRLA_PRESCALER_DIV256;
-//            | TC_CTRLA_PRESCALER_DIV64;
         tc->COUNT16.WAVE.reg = TC_WAVE_WAVEGEN_MFRQ;
         #endif
 
         tc_set_enable(tc, true);
-//        tc->COUNT16.CC[0].reg = 64;
         tc->COUNT16.CC[0].reg = 188;
 
         // Clear our interrupt in case it was set earlier

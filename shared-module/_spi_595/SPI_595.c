@@ -74,8 +74,11 @@ void spi_595_init() {
         // We use GCLK0 for SAMD21 and GCLK1 for SAMD51 because they both run
         // at 48mhz making our math the same across the boards.
         //
-        // We'll divide this by (256*188) to get 1 kHz
+        // We'll divide this by (1024*94) to get 500 Hz
         // The time spent drawing the screen can be adjusted via the SPI clock.
+        // With SCK at 8 MHz it's taking 1.51 ms to draw, which means we could
+        // achieve 660 Hz max. So this will leave CircuitPython with 25% of the
+        // time to do other things.
         //
         #ifdef SAMD21
         turn_on_clocks(true, index, 0);
@@ -87,19 +90,19 @@ void spi_595_init() {
 
         #ifdef SAMD21
         tc->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16 |
-                                TC_CTRLA_PRESCALER_DIV64 |
+                                TC_CTRLA_PRESCALER_DIV1024 |
                                 TC_CTRLA_WAVEGEN_MFRQ;
         #endif
         #ifdef SAMD51
         tc_reset(tc);
         tc_set_enable(tc, false);
         tc->COUNT16.CTRLA.reg = TC_CTRLA_MODE_COUNT16
-            | TC_CTRLA_PRESCALER_DIV256;
+            | TC_CTRLA_PRESCALER_DIV1024;
         tc->COUNT16.WAVE.reg = TC_WAVE_WAVEGEN_MFRQ;
         #endif
 
         tc_set_enable(tc, true);
-        tc->COUNT16.CC[0].reg = 188;
+        tc->COUNT16.CC[0].reg = 93;
 
         // Clear our interrupt in case it was set earlier
         tc->COUNT16.INTFLAG.reg = TC_INTFLAG_MC0;

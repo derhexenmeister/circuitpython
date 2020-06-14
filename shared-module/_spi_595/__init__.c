@@ -55,12 +55,17 @@
 
 // We'll handle brightness based on the output of cie1931.py
 // (see https://jared.geek.nz/2013/feb/linear-led-pwm)
-// with INPUT_SIZE = 3 and OUTPUT_SIZE = 16.
+// with INPUT_SIZE = 3 and OUTPUT_SIZE = 8.
+
+// Go with short PWM sequence. Was usingthe output of cie1931.py
+// (see https://jared.geek.nz/2013/feb/linear-led-pwm)
+// with INPUT_SIZE = 3 and OUTPUT_SIZE = 16, but after changing
+// to a single pixel scan this resulted in too much flicker.
 //
-// Level 3 : 16 frames on,  0 frames off
-// Level 2 :  6 frames on, 10 frames off
-// Level 1 :  1 frames on, 15 frames off
-// Level 0 :  0 frames on, 16 frames off
+// Level 3 : 8 frames on, 0 frames off
+// Level 2 : 3 frames on, 5 frames off
+// Level 1 : 1 frames on, 7 frames off
+// Level 0 : 0 frames on, 8 frames off
 // 
 // Note that this is somewhat complicated by the fact that we
 // don't want to completely consume the processor. So we'll have
@@ -69,14 +74,14 @@
 // Also will colors with multiple components active appear brighter?
 // Need to revisit this.
 //
-#define FRAME_MASK      0xf
+#define FRAME_MASK      0x3
 #define COLOR_MASK      0x3
 
 void spi_595_tick(void) {
     busio_spi_obj_t *spi;
     digitalio_digitalinout_obj_t *spi_cs;
     uint8_t spi_packet[4];
-    static uint8_t frame_level[] = {1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    static uint8_t frame_level[] = {1, 2, 2, 3, 3, 3, 3, 3};
     static uint8_t frame_cnt = 0;
 
     spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
@@ -86,54 +91,73 @@ void spi_595_tick(void) {
     spi_cs = MP_OBJ_TO_PTR(spi_595->chip_select);
 
     for (uint8_t col = 0 ; col < COL_SIZE ; col++) {
-        uint8_t red_value   = 0xff;
-        uint8_t green_value = 0xff;
-        uint8_t blue_value  = 0xff;
-        for (uint8_t row = 0 ; row < ROW_SIZE ; row++) {
-            uint8_t color = spi_595->buffer[row * ROW_SIZE + col];
-            if (((color >> RED_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
-                // We're using upper left-hand corner as the origin, change to
-                // (1 << row) for lower-left origin
-                red_value &= ~(0x80 >> row);
-            }
-            if (((color >> GREEN_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
-                green_value &= ~(0x80 >> row);
-            }
-            if (((color >> BLUE_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
-                blue_value &= ~(0x80 >> row);
-            }
-        }
         spi_packet[COL_OFFSET] = (1 << col);
 
-        // Red
-        spi_packet[RED_OFFSET]   = red_value;
-        spi_packet[GREEN_OFFSET] = 0xff;
-        spi_packet[BLUE_OFFSET]  = 0xff;
+        for (uint8_t row = 0 ; row < ROW_SIZE ; row++) {
+            uint8_t red_value;
+            uint8_t green_value;
+            uint8_t blue_value;
 
-        common_hal_digitalio_digitalinout_set_value(spi_cs, false);
-        common_hal_busio_spi_write(spi, spi_packet, 4);
-        common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+            uint8_t color = spi_595->buffer[row * ROW_SIZE + col];
 
-        // Green
-        spi_packet[RED_OFFSET]   = 0xff;
-        spi_packet[GREEN_OFFSET] = green_value;
-        spi_packet[BLUE_OFFSET]  = 0xff;
+            // We're using upper left-hand corner as the origin, change to
+            // ~(0x01 << row) for lower-left origin
+            //
+            uint8_t on_value = ~(0x80 >> row);
 
-        common_hal_digitalio_digitalinout_set_value(spi_cs, false);
-        common_hal_busio_spi_write(spi, spi_packet, 4);
-        common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+            if (((color >> RED_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                red_value = on_value;
+            }
+            else {
+                red_value = 0xff;
+            }
+            if (((color >> GREEN_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                green_value = on_value;
+            }
+            else {
+                green_value = 0xff;
+            }
+            if (((color >> BLUE_SHIFT) & COLOR_MASK) >= frame_level[frame_cnt]) {
+                blue_value = on_value;
+            }
+            else {
+                blue_value = 0xff;
+            }
 
-        // Blue
-        spi_packet[RED_OFFSET]   = 0xff;
-        spi_packet[GREEN_OFFSET] = 0xff;
-        spi_packet[BLUE_OFFSET]  = blue_value;
+            // Lighting a single LED at a time - when we illuminated an entire
+            // column there seemed to be some current sharing which caused
+            // artifacts for dynamic displays
 
-        common_hal_digitalio_digitalinout_set_value(spi_cs, false);
-        common_hal_busio_spi_write(spi, spi_packet, 4);
-        common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+            // Red
+            spi_packet[RED_OFFSET]   = red_value;
+            spi_packet[GREEN_OFFSET] = 0xff;
+            spi_packet[BLUE_OFFSET]  = 0xff;
+
+            common_hal_digitalio_digitalinout_set_value(spi_cs, false);
+            common_hal_busio_spi_write(spi, spi_packet, 4);
+            common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+
+            // Green
+            spi_packet[RED_OFFSET]   = 0xff;
+            spi_packet[GREEN_OFFSET] = green_value;
+            spi_packet[BLUE_OFFSET]  = 0xff;
+
+            common_hal_digitalio_digitalinout_set_value(spi_cs, false);
+            common_hal_busio_spi_write(spi, spi_packet, 4);
+            common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+
+            // Blue
+            spi_packet[RED_OFFSET]   = 0xff;
+            spi_packet[GREEN_OFFSET] = 0xff;
+            spi_packet[BLUE_OFFSET]  = blue_value;
+
+            common_hal_digitalio_digitalinout_set_value(spi_cs, false);
+            common_hal_busio_spi_write(spi, spi_packet, 4);
+            common_hal_digitalio_digitalinout_set_value(spi_cs, true);
+        }
     }
 
-    // Turn off (otherwise last column will be brighter (for one color)
+    // Turn off (otherwise last pixel will be brighter for one color)
     spi_packet[RED_OFFSET]   = 0xff;
     spi_packet[GREEN_OFFSET] = 0xff;
     spi_packet[BLUE_OFFSET]  = 0xff;

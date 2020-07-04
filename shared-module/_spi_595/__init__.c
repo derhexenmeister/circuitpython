@@ -74,7 +74,7 @@
 // Also will colors with multiple components active appear brighter?
 // Need to revisit this.
 //
-#define FRAME_MASK      0x3
+#define FRAME_MASK      0x7
 #define COLOR_MASK      0x3
 
 void spi_595_tick(void) {

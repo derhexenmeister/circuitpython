@@ -122,3 +122,15 @@
 [submodule "lib/protomatter"]
 	path = lib/protomatter
 	url = https://github.com/adafruit/Adafruit_Protomatter
+[submodule "frozen/Adafruit_CircuitPython_binascii"]
+	path = frozen/Adafruit_CircuitPython_binascii
+	url = https://github.com/adafruit/Adafruit_CircuitPython_binascii
+[submodule "frozen/Adafruit_CircuitPython_Debouncer"]
+	path = frozen/Adafruit_CircuitPython_Debouncer
+	url = https://github.com/adafruit/Adafruit_CircuitPython_Debouncer
+[submodule "frozen/Adafruit_Python_MCP9808"]
+	path = frozen/Adafruit_Python_MCP9808
+	url = https://github.com/adafruit/Adafruit_Python_MCP9808
+[submodule "frozen/Adafruit_CircuitPython_TCS34725"]
+	path = frozen/Adafruit_CircuitPython_TCS34725
+	url = https://github.com/adafruit/Adafruit_CircuitPython_TCS34725

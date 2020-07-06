@@ -18,3 +18,11 @@ CIRCUITPY_BITBANG_APA102 = 1
 CIRCUITPY_PEW = 0
 CIRCUITPY_SPI_595 = 1
 
+# Include these Python libraries in firmware
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_binascii
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_BusDevice
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_Debouncer
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_DotStar
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_HID
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_Python_MCP9808
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_TCS34725

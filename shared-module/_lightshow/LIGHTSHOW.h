@@ -26,10 +26,22 @@
  * THE SOFTWARE.
  */
 
+#ifndef MICROPY_INCLUDED_LIGHTSHOW_H
+#define MICROPY_INCLUDED_LIGHTSHOW_H
 
-#ifndef MICROPY_INCLUDED_SHARED_BINDINGS_SPI_595_H
-#define MICROPY_INCLUDED_SHARED_BINDINGS_SPI_595_H
+#include <stdint.h>
+#include "shared-bindings/digitalio/DigitalInOut.h"
+#include "shared-bindings/busio/SPI.h"
 
-extern const mp_obj_type_t spi_595_type;
+typedef struct {
+    mp_obj_base_t base;
+    uint8_t* buffer;
+    busio_spi_obj_t *spi;
+    digitalio_digitalinout_obj_t *chip_select;
+} lightshow_obj_t;
 
-#endif // MICROPY_INCLUDED_SHARED_BINDINGS_SPI_595_H
+void lightshow_init(void);
+void lightshow_interrupt_handler(uint8_t index);
+void lightshow_reset(void);
+
+#endif  // MICROPY_INCLUDED_LIGHTSHOW_H

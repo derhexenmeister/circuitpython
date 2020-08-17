@@ -84,7 +84,7 @@
 #include "shared-module/gamepadshift/__init__.h"
 #endif
 #include "shared-module/_pew/PewPew.h"
-#include "shared-module/_spi_595/SPI_595.h"
+#include "shared-module/_lightshow/LIGHTSHOW.h"
 
 extern volatile bool mp_msc_enabled;
 
@@ -291,8 +291,8 @@ void reset_port(void) {
 #if CIRCUITPY_PEW
     pew_reset();
 #endif
-#if CIRCUITPY_SPI_595
-    spi_595_reset();
+#if CIRCUITPY_LIGHTSHOW
+    lightshow_reset();
 #endif
 
     reset_event_system();

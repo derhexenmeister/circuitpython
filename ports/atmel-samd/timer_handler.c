@@ -31,7 +31,7 @@
 
 #include "common-hal/pulseio/PulseOut.h"
 #include "shared-module/_pew/PewPew.h"
-#include "shared-module/_spi_595/SPI_595.h"
+#include "shared-module/_lightshow/LIGHTSHOW.h"
 #include "common-hal/frequencyio/FrequencyIn.h"
 
 extern void _PM_IRQ_HANDLER(void);
@@ -60,9 +60,9 @@ void shared_timer_handler(bool is_tc, uint8_t index) {
                 pewpew_interrupt_handler(index);
             #endif
                 break;
-            case TC_HANDLER_SPI_595:
-            #if CIRCUITPY_SPI_595
-                spi_595_interrupt_handler(index);
+            case TC_HANDLER_LIGHTSHOW:
+            #if CIRCUITPY_LIGHTSHOW
+                lightshow_interrupt_handler(index);
             #endif
                 break;
             case TC_HANDLER_FREQUENCYIN:

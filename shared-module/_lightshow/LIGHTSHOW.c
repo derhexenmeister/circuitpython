@@ -31,7 +31,7 @@
 #include "py/mpstate.h"
 #include "py/runtime.h"
 #include "__init__.h"
-#include "SPI_595.h"
+#include "LIGHTSHOW.h"
 
 #include "shared-bindings/digitalio/Pull.h"
 #include "shared-bindings/digitalio/DigitalInOut.h"
@@ -41,11 +41,11 @@
 #include "timer_handler.h"
 
 
-static uint8_t spi_595_tc_index = 0xff;
+static uint8_t lightshow_tc_index = 0xff;
 
 
-void spi_595_interrupt_handler(uint8_t index) {
-    if (index != spi_595_tc_index) {
+void lightshow_interrupt_handler(uint8_t index) {
+    if (index != lightshow_tc_index) {
         return;
     }
     Tc* tc = tc_insts[index];
@@ -53,14 +53,14 @@ void spi_595_interrupt_handler(uint8_t index) {
         return;
     }
 
-    spi_595_tick();
+    lightshow_tick();
 
     // Clear the interrupt bit.
     tc->COUNT16.INTFLAG.reg = TC_INTFLAG_MC0;
 }
 
-void spi_595_init() {
-    if (spi_595_tc_index == 0xff) {
+void lightshow_init() {
+    if (lightshow_tc_index == 0xff) {
         // Find a spare timer.
         uint8_t index = find_free_timer();
         if (index == 0xff) {
@@ -68,8 +68,8 @@ void spi_595_init() {
         }
         Tc *tc = tc_insts[index];
 
-        spi_595_tc_index = index;
-        set_timer_handler(true, index, TC_HANDLER_SPI_595);
+        lightshow_tc_index = index;
+        set_timer_handler(true, index, TC_HANDLER_LIGHTSHOW);
 
         // We use GCLK0 for SAMD21 and GCLK1 for SAMD51 because they both run
         // at 48mhz making our math the same across the boards.
@@ -107,14 +107,14 @@ void spi_595_init() {
         // Clear our interrupt in case it was set earlier
         tc->COUNT16.INTFLAG.reg = TC_INTFLAG_MC0;
         tc->COUNT16.INTENSET.reg = TC_INTENSET_MC0;
-        tc_enable_interrupts(spi_595_tc_index);
+        tc_enable_interrupts(lightshow_tc_index);
     }
 }
 
-void spi_595_reset(void) {
-    if (spi_595_tc_index != 0xff) {
-        tc_reset(tc_insts[spi_595_tc_index]);
-        spi_595_tc_index = 0xff;
+void lightshow_reset(void) {
+    if (lightshow_tc_index != 0xff) {
+        tc_reset(tc_insts[lightshow_tc_index]);
+        lightshow_tc_index = 0xff;
     }
-    MP_STATE_VM(spi_595_singleton) = NULL;
+    MP_STATE_VM(lightshow_singleton) = NULL;
 }

@@ -31,7 +31,7 @@
 #define TC_HANDLER_PEW 0x2
 #define TC_HANDLER_FREQUENCYIN 0x3
 #define TC_HANDLER_RGBMATRIX 0x4
-#define TC_HANDLER_SPI_595 0x5
+#define TC_HANDLER_LIGHTSHOW 0x5
 
 void set_timer_handler(bool is_tc, uint8_t index, uint8_t timer_handler);
 void shared_timer_handler(bool is_tc, uint8_t index);

@@ -28,19 +28,19 @@
 #include "py/obj.h"
 #include "py/runtime.h"
 #include "py/mphal.h"
-#include "SPI_595.h"
-#include "shared-module/_spi_595/SPI_595.h"
+#include "LIGHTSHOW.h"
+#include "shared-module/_lightshow/LIGHTSHOW.h"
 
 //| """LED matrix driver"""
 //|
-STATIC const mp_rom_map_elem_t spi_595_module_globals_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__spi_595) },
-    { MP_OBJ_NEW_QSTR(MP_QSTR_SPI_595),  MP_ROM_PTR(&spi_595_type)},
+STATIC const mp_rom_map_elem_t lightshow_module_globals_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__lightshow) },
+    { MP_OBJ_NEW_QSTR(MP_QSTR_LIGHTSHOW),  MP_ROM_PTR(&lightshow_type)},
 };
-STATIC MP_DEFINE_CONST_DICT(spi_595_module_globals,
-        spi_595_module_globals_table);
+STATIC MP_DEFINE_CONST_DICT(lightshow_module_globals,
+        lightshow_module_globals_table);
 
-const mp_obj_module_t spi_595_module = {
+const mp_obj_module_t lightshow_module = {
     .base = { &mp_type_module },
-    .globals = (mp_obj_dict_t*)&spi_595_module_globals,
+    .globals = (mp_obj_dict_t*)&lightshow_module_globals,
 };

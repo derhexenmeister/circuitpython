@@ -30,7 +30,7 @@
 
 #include "py/mpstate.h"
 #include "__init__.h"
-#include "SPI_595.h"
+#include "LIGHTSHOW.h"
 
 #include "shared-bindings/digitalio/DigitalInOut.h"
 
@@ -77,18 +77,18 @@
 #define FRAME_MASK      0x7
 #define COLOR_MASK      0x3
 
-void spi_595_tick(void) {
+void lightshow_tick(void) {
     busio_spi_obj_t *spi;
     digitalio_digitalinout_obj_t *spi_cs;
     uint8_t spi_packet[4];
     static uint8_t frame_level[] = {1, 2, 2, 3, 3, 3, 3, 3};
     static uint8_t frame_cnt = 0;
 
-    spi_595_obj_t* spi_595 = MP_STATE_VM(spi_595_singleton);
-    if (!spi_595) { return; }
+    lightshow_obj_t* lightshow = MP_STATE_VM(lightshow_singleton);
+    if (!lightshow) { return; }
 
-    spi = MP_OBJ_TO_PTR(spi_595->spi);
-    spi_cs = MP_OBJ_TO_PTR(spi_595->chip_select);
+    spi = MP_OBJ_TO_PTR(lightshow->spi);
+    spi_cs = MP_OBJ_TO_PTR(lightshow->chip_select);
 
     for (uint8_t col = 0 ; col < COL_SIZE ; col++) {
         spi_packet[COL_OFFSET] = (1 << col);
@@ -98,7 +98,7 @@ void spi_595_tick(void) {
             uint8_t green_value;
             uint8_t blue_value;
 
-            uint8_t color = spi_595->buffer[row * ROW_SIZE + col];
+            uint8_t color = lightshow->buffer[row * ROW_SIZE + col];
 
             // We're using upper left-hand corner as the origin, change to
             // ~(0x01 << row) for lower-left origin

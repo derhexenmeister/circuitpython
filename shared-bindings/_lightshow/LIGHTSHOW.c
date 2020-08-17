@@ -32,18 +32,18 @@
 #include "py/mpstate.h"
 #include "shared-bindings/digitalio/DigitalInOut.h"
 #include "shared-bindings/util.h"
-#include "SPI_595.h"
-#include "shared-module/_spi_595/SPI_595.h"
+#include "LIGHTSHOW.h"
+#include "shared-module/_lightshow/LIGHTSHOW.h"
 #include "supervisor/shared/translate.h"
 
-//| class SPI_595: TODO update this test TODO
-//|     """This is an internal module to be used by the ``spi_595.py`` library from
-//|     https://github.com/derhexenmeister/spi_595 to handle the
+//| class LIGHTSHOW: TODO update this test TODO
+//|     """This is an internal module to be used by the ``lightshow.py`` library from
+//|     https://github.com/derhexenmeister/lightshow to handle the
 //|     RGB LED matrix display for an ItsyBitsy M4 Express board (or similar)
 //|
 //|     Usage::
 //|
-//|         This singleton class is instantiated by the ``spi_595`` library, and
+//|         This singleton class is instantiated by the ``lightshow`` library, and
 //|         used internally by it. All user-visible interactions are done through
 //|         that library."""
 //|
@@ -58,7 +58,7 @@
 //|         be displayed on the matrix."""
 //|         ...
 //|
-STATIC mp_obj_t spi_595_make_new(const mp_obj_type_t *type, size_t n_args,
+STATIC mp_obj_t lightshow_make_new(const mp_obj_type_t *type, size_t n_args,
         const mp_obj_t *pos_args, mp_map_t *kw_args) {
     mp_arg_check_num(n_args, kw_args, 3, 3, true);
     enum { ARG_spi, ARG_chip_select, ARG_buffer };
@@ -98,28 +98,28 @@ STATIC mp_obj_t spi_595_make_new(const mp_obj_type_t *type, size_t n_args,
         mp_raise_ValueError(translate("Incorrect buffer size"));
     }
 
-    spi_595_obj_t *spi_595 = MP_STATE_VM(spi_595_singleton);
-    if (!spi_595) {
-        spi_595 = m_new_obj(spi_595_obj_t);
-        spi_595->base.type = &spi_595_type;
-        spi_595 = gc_make_long_lived(spi_595);
-        MP_STATE_VM(spi_595_singleton) = spi_595;
+    lightshow_obj_t *lightshow = MP_STATE_VM(lightshow_singleton);
+    if (!lightshow) {
+        lightshow = m_new_obj(lightshow_obj_t);
+        lightshow->base.type = &lightshow_type;
+        lightshow = gc_make_long_lived(lightshow);
+        MP_STATE_VM(lightshow_singleton) = lightshow;
     }
 
-    spi_595->spi = spi;
-    spi_595->chip_select = chip_select;
-    spi_595->buffer = bufinfo.buf;
-    spi_595_init();
+    lightshow->spi = spi;
+    lightshow->chip_select = chip_select;
+    lightshow->buffer = bufinfo.buf;
+    lightshow_init();
 
-    return MP_OBJ_FROM_PTR(spi_595);
+    return MP_OBJ_FROM_PTR(lightshow);
 }
 
-STATIC const mp_rom_map_elem_t spi_595_locals_dict_table[] = {
+STATIC const mp_rom_map_elem_t lightshow_locals_dict_table[] = {
 };
-STATIC MP_DEFINE_CONST_DICT(spi_595_locals_dict, spi_595_locals_dict_table);
-const mp_obj_type_t spi_595_type = {
+STATIC MP_DEFINE_CONST_DICT(lightshow_locals_dict, lightshow_locals_dict_table);
+const mp_obj_type_t lightshow_type = {
     { &mp_type_type },
-    .name = MP_QSTR_SPI_595,
-    .make_new = spi_595_make_new,
-    .locals_dict = (mp_obj_dict_t*)&spi_595_locals_dict,
+    .name = MP_QSTR_LIGHTSHOW,
+    .make_new = lightshow_make_new,
+    .locals_dict = (mp_obj_dict_t*)&lightshow_locals_dict,
 };

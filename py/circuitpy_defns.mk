@@ -235,8 +235,8 @@ endif
 ifeq ($(CIRCUITPY_PEW),1)
 SRC_PATTERNS += _pew/%
 endif
-ifeq ($(CIRCUITPY_SPI_595),1)
-SRC_PATTERNS += _spi_595/%
+ifeq ($(CIRCUITPY_LIGHTSHOW),1)
+SRC_PATTERNS += _lightshow/%
 endif
 
 # All possible sources are listed here, and are filtered by SRC_PATTERNS in SRC_COMMON_HAL
@@ -379,8 +379,8 @@ SRC_SHARED_MODULE_ALL = \
 	ustack/__init__.c \
 	_pew/__init__.c \
 	_pew/PewPew.c \
-	_spi_595/__init__.c \
-	_spi_595/SPI_595.c \
+	_lightshow/__init__.c \
+	_lightshow/LIGHTSHOW.c \
         _eve/__init__.c
 
 # All possible sources are listed here, and are filtered by SRC_PATTERNS.

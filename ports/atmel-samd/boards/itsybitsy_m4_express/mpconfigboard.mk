@@ -18,6 +18,10 @@ CIRCUITPY_BITBANG_APA102 = 1
 CIRCUITPY_PEW = 0
 CIRCUITPY_LIGHTSHOW = 1
 
+# Add this line so that we can remove GAMEPAD. This seems to be interfering with the
+# ability for HID to work on iOS
+USB_HID_DEVICES=KEYBOARD,MOUSE,CONSUMER
+
 # Include these Python libraries in firmware
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_binascii
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_BusDevice
@@ -26,3 +30,4 @@ FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_DotStar
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_HID
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_MCP9808
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_TCS34725
+FROZEN_MPY_DIRS += $(TOP)/frozen/GroveUltrasonicRanger

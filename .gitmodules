@@ -134,3 +134,6 @@
 [submodule "frozen/Adafruit_CircuitPython_MCP9808"]
 	path = frozen/Adafruit_CircuitPython_MCP9808
 	url = https://github.com/adafruit/Adafruit_CircuitPython_MCP9808
+[submodule "frozen/GroveUltrasonicRanger"]
+	path = frozen/GroveUltrasonicRanger
+	url = https://github.com/derhexenmeister/GroveUltrasonicRanger

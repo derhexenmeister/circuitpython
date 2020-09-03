@@ -29,5 +29,6 @@ FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_Debouncer
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_DotStar
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_HID
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_MCP9808
+FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_MIDI
 FROZEN_MPY_DIRS += $(TOP)/frozen/Adafruit_CircuitPython_TCS34725
 FROZEN_MPY_DIRS += $(TOP)/frozen/GroveUltrasonicRanger

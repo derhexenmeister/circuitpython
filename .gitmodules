@@ -137,3 +137,6 @@
 [submodule "frozen/GroveUltrasonicRanger"]
 	path = frozen/GroveUltrasonicRanger
 	url = https://github.com/derhexenmeister/GroveUltrasonicRanger
+[submodule "frozen/Adafruit_CircuitPython_MIDI"]
+	path = frozen/Adafruit_CircuitPython_MIDI
+	url = https://github.com/adafruit/Adafruit_CircuitPython_MIDI
